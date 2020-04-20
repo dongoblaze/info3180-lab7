@@ -4,9 +4,12 @@ Jinja2 Documentation:    http://jinja.pocoo.org/2/documentation/
 Werkzeug Documentation:  http://werkzeug.pocoo.org/documentation/
 This file creates your application.
 """
-
+import os
 from app import app
-from flask import render_template, request
+from flask import render_template,redirect, request,url_for,flash,jsonify
+from werkzeug.utils import secure_filename
+
+from. forms import UploadForm
 
 ###
 # Routing for your application.
@@ -19,6 +22,7 @@ from flask import render_template, request
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def index(path):
+    form=UploadForm
     """
     Because we use HTML5 history mode in vue-router we need to configure our
     web server to redirect all routes to index.html. Hence the additional route
@@ -56,7 +60,39 @@ def send_text_file(file_name):
     file_dot_text = file_name + '.txt'
     return app.send_static_file(file_dot_text)
 
+@app.route('/api/upload',methods=['POST'])
+def upload():
+    form=UploadForm()
+    if request.method == 'POST' and form.validate_on_submit():
+        description = request.form['description'] 
+        photo = request.files['photo'] 
+        filename = secure_filename(photo.filename)
+        photo.save(os.path.join(app.config['UPLOAD_FOLDER'],filename))
+        return jsonify({'message': 'File upload successful',
+        'filename':'you-uploaded-file.jpg' ,'description': "Some description for your image"})
+    else:
 
+        return jsonify({'errors':form_errors(form)})
+
+# @app.route('/upload/',methods=['POST'])
+# def upload():
+#     """Render the website's about page."""
+#     form= UploadForm()
+#     # Validate file upload on submit
+#     if request.method == 'POST' and form.validate_on_submit() :
+        
+#         description= form.description.data
+#         photo = form.photo.data
+#         photo = request.files['photo'] 
+#         # Get file data and save to your uploads folder
+#         filename = secure_filename(photo.filename)
+#         photo.save(os.path.join(
+#             app.config['UPLOAD_FOLDER'], filename
+#         ))
+#         flash('File Saved', 'success')
+        
+#         # return redirect(url_for('upload',description=description,photo=photo))
+#     return render_template('upload.html' , form=form)
 @app.after_request
 def add_header(response):
     """
