@@ -22,7 +22,7 @@ from. forms import UploadForm
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def index(path):
-    form=UploadForm
+    form=UploadForm()
     """
     Because we use HTML5 history mode in vue-router we need to configure our
     web server to redirect all routes to index.html. Hence the additional route
@@ -30,7 +30,7 @@ def index(path):
 
     Also we will render the initial webpage and then let VueJS take control.
     """
-    return render_template('index.html')
+    return render_template('index.html',form=form)
 
 
 # Here we define a function to collect form errors from Flask-WTF
@@ -69,7 +69,7 @@ def upload():
         filename = secure_filename(photo.filename)
         photo.save(os.path.join(app.config['UPLOAD_FOLDER'],filename))
         return jsonify({'message': 'File upload successful',
-        'filename':'you-uploaded-file.jpg' ,'description': "Some description for your image"})
+        'filename':filename ,'description': description})
     else:
 
         return jsonify({'errors':form_errors(form)})
